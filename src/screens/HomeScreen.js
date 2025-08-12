@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { FlatList, ImageBackground, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { dh, dw } from '../constants/Dimensions'
 import WeatherCard from '../components/WeatherCard'
@@ -45,22 +45,41 @@ const HomeScreen = () => {
             const response = await fetch(url)
             const result = await response.json()
             console.log('result', JSON.stringify(result));
+            const englishNews = (result.results || []).filter(item => item.language === "english");
+            setNewsData(englishNews);
 
-            setNewsData(result);
 
-            // setPageToken(result.nextPage);
+            setPageToken(result.nextPage);
         }
         catch (err) {
             console.log('Error fecthing news', err);
         }
 
     }
+    const renderItem = ({ item }) => {
+        if (item.language !== 'english') return null;
+        return (
+            <View key={item.article_id}>
+                <NewsCard
+                    image={item.image_url}
+                    headline={item.title}
+                    description={item.description || "No description available"}
+                    link={item.link} />
+            </View>
+        );
+    };
+
     return (
-        <ScrollView style={styles.mainContainer}>
+        <View style={styles.mainContainer}>
             <WeatherCard />
             <Text style={styles.title}>Latest News</Text>
-            <NewsCard image={sunIcon} />
-        </ScrollView>
+            <FlatList data={newsData} renderItem={renderItem}
+                pagingEnabled
+                showsVerticalScrollIndicator={false}
+                keyExtractor={(item) => item.article_id}
+                // onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.5} />
+        </View>
     )
 }
 

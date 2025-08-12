@@ -1,15 +1,27 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity, Linking } from 'react-native';
+import { dh, dw } from '../constants/Dimensions';
 
-const { width } = Dimensions.get('window');
-const { height } = Dimensions.get('window');
 
-const NewsCard = ({ image, headline }) => {
+const NewsCard = ({ image, headline, description, link }) => {
+    const openLink = () => {
+        if (link) {
+            Linking.openURL(link).catch(err => console.error("Failed to open link", err));
+        }
+    };
     return (
         <View style={styles.card}>
-            <Image source={image} style={styles.image} />
+            <Image source={{ uri: image }} style={styles.image} />
             <View style={styles.content}>
                 <Text style={styles.headline}>{headline}</Text>
+                <Text style={styles.description} numberOfLines={3}>
+                    {description}
+                </Text>
+                {link && (
+                    <TouchableOpacity onPress={openLink}>
+                        <Text style={styles.linkText}>Link</Text>
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
     );
@@ -17,32 +29,35 @@ const NewsCard = ({ image, headline }) => {
 
 const styles = StyleSheet.create({
     card: {
-        marginHorizontal: 15,
-        width: width * 0.6,
-        height: height / 3.3,
-        borderRadius: 15,
+        backgroundColor: '#F2F2F2',
+        // width: dw,
+        margin: dw / 37,
+        padding: 10,
+        flexDirection: 'row',
+        borderRadius: 7,
         overflow: 'hidden',
-        backgroundColor: '#E9EAEC',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        margin: 10,
+        elevation: 2
+    },
+    description: {
+        fontSize: 16,
+        fontWeight: '400',
+        flexShrink: 1
     },
     image: {
-        height: 170,
-        width: '100%',
-        resizeMode: 'cover',
+
     },
     content: {
-        padding: 15,
     },
     headline: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
+        fontSize: 20,
+        fontWeight: '500',
+        paddingVertical: 10
     },
+    linkText: {
+        color: '#007BFF',
+        marginTop: 5,
+        fontSize: 14
+    }
 });
 
 export default NewsCard;
