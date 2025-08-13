@@ -200,7 +200,7 @@ export default function WeatherCard() {
         }
     }
 
-    const nextSixDaysForecast = daily?.time?.slice(1, 7).map((date, index) => ({
+    const nextSixDaysForecast = daily?.time?.slice(1, 6).map((date, index) => ({
         date,
         weatherCode: daily.weather_code[index + 1],
         maxTemp: daily.temperature_2m_max[index + 1],
