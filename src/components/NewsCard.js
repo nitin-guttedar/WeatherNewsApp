@@ -1,63 +1,53 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity, Linking } from 'react-native';
-import { dh, dw } from '../constants/Dimensions';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { dh } from '../constants/Dimensions';
 
-
-const NewsCard = ({ image, headline, description, link }) => {
-    const openLink = () => {
-        if (link) {
-            Linking.openURL(link).catch(err => console.error("Failed to open link", err));
-        }
-    };
+const NewsCard = ({ newsItem }) => {
     return (
-        <View style={styles.card}>
-            <Image source={{ uri: image }} style={styles.image} />
+        <TouchableOpacity style={styles.card} >
+            {newsItem.image_url && (
+                <Image source={{ uri: newsItem.image_url }} style={styles.image} />
+            )}
             <View style={styles.content}>
-                <Text style={styles.headline}>{headline}</Text>
-                <Text style={styles.description} numberOfLines={3}>
-                    {description}
-                </Text>
-                {link && (
-                    <TouchableOpacity onPress={openLink}>
-                        <Text style={styles.linkText}>Link</Text>
-                    </TouchableOpacity>
-                )}
+                <Text style={styles.title}>{newsItem.title}</Text>
+                <Text>{newsItem.description}</Text>
+                <Text style={styles.source} onPress={() => Linking.openURL(newsItem.source_url)}>Source: {newsItem.source_id}</Text>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 };
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: '#F2F2F2',
-        // width: dw,
-        margin: dw / 37,
-        padding: 10,
-        flexDirection: 'row',
-        borderRadius: 7,
-        overflow: 'hidden',
-        elevation: 2
-    },
-    description: {
-        fontSize: 16,
-        fontWeight: '400',
-        flexShrink: 1
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+        marginBottom: 16,
     },
     image: {
-
+        width: '100%',
+        height: dh / 10,
+        backgroundColor: '#e0e0e0',
+        borderTopRightRadius: 10,
+        borderTopLeftRadius: 10,
     },
     content: {
+        padding: 12,
     },
-    headline: {
-        fontSize: 20,
-        fontWeight: '500',
-        paddingVertical: 10
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 8,
+        color: '#1a202c',
     },
-    linkText: {
-        color: '#007BFF',
-        marginTop: 5,
-        fontSize: 14
-    }
+    source: {
+        fontSize: 14,
+        color: '#718096',
+    },
 });
 
 export default NewsCard;

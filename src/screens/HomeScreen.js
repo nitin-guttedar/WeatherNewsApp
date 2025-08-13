@@ -1,102 +1,157 @@
-import { FlatList, ImageBackground, ScrollView, StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { dh, dw } from '../constants/Dimensions'
-import WeatherCard from '../components/WeatherCard'
-import NewsCard from '../components/NewsCard'
-import { sunIcon } from '../constants/Images'
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+    StyleSheet,
+    FlatList,
+    View,
+    Text,
+    ActivityIndicator,
+} from 'react-native';
+import NewsCard from '../components/NewsCard';
+import WeatherCard from '../components/WeatherCard';
+
+const API_KEY = 'pub_47653636dfdf49e78fd75a7b56b46a07';
 
 const HomeScreen = () => {
-    // const [loading, setLoading] = useState(false)
-    const [newsData, setNewsData] = useState([])
-    const [pageToken, setPageToken] = useState(null);
+    const [news, setNews] = useState([]);
+    const [nextPage, setNextPage] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [error, setError] = useState(null);
 
-    // useEffect(() => fetchNews()
-    //     , [])
+    const fetchNews = async (pageToken = null) => {
+        try {
+            if (pageToken) {
+                setLoadingMore(true);
+            } else {
+                setLoading(true);
+                setError(null);
+            }
+
+            let url = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&language=en`;
+            if (pageToken) {
+                url += `&page=${pageToken}`;
+            }
+
+            const response = await fetch(url);
+            const result = await response.json();
+
+            if (result && result.results) {
+                setNews(prevNews => [...prevNews, ...result.results]);
+                setNextPage(result.nextPage);
+            }
+        } catch (error) {
+            console.error('Error fetching news:', error);
+            setError(
+                'Failed to fetch news. Please check your API key or network connection.',
+            );
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
+        }
+    };
 
     useEffect(() => {
-        fetchNews()
-    }, [])
+        fetchNews();
+    }, []);
 
-    const fetchWeather = async () => {
-        setLoading(true)
-        try {
-            const API_KEY = ''
-            const url = ''
-            const response = await fetch(url)
-            const result = await response.json()
-            console.log('result', result);
+    const renderItem = ({ item }) => <NewsCard newsItem={item} />;
 
+    const handleLoadMore = () => {
+        if (nextPage && !loadingMore) {
+            fetchNews(nextPage);
         }
-        catch (err) {
-            console.log('Error fetching weather', err);
+    };
 
-        }
-        finally {
-            setLoading(false)
-        }
-
-    }
-
-    const fetchNews = async () => {
-        // setLoading(true)
-        try {
-            const API_KEY = 'pub_47653636dfdf49e78fd75a7b56b46a07';
-            const url = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&country=in${pageToken ? `&page=${pageToken}` : ''}`;
-            const response = await fetch(url)
-            const result = await response.json()
-            console.log('result', JSON.stringify(result));
-            const englishNews = (result.results || []).filter(item => item.language === "english");
-            setNewsData(englishNews);
-
-
-            setPageToken(result.nextPage);
-        }
-        catch (err) {
-            console.log('Error fecthing news', err);
-        }
-
-    }
-    const renderItem = ({ item }) => {
-        if (item.language !== 'english') return null;
+    const renderFooter = () => {
+        if (!loadingMore) return null;
         return (
-            <View key={item.article_id}>
-                <NewsCard
-                    image={item.image_url}
-                    headline={item.title}
-                    description={item.description || "No description available"}
-                    link={item.link} />
+            <View style={styles.footer}>
+                <ActivityIndicator size="small" color="#0000ff" />
+                <Text style={styles.footerText}>Loading more...</Text>
             </View>
         );
     };
 
-    return (
-        <View style={styles.mainContainer}>
-            <WeatherCard />
-            <Text style={styles.title}>Latest News</Text>
-            <FlatList data={newsData} renderItem={renderItem}
-                pagingEnabled
-                showsVerticalScrollIndicator={false}
-                keyExtractor={(item) => item.article_id}
-                // onEndReached={handleLoadMore}
-                onEndReachedThreshold={0.5} />
-        </View>
-    )
-}
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#0000ff" />
+            </SafeAreaView>
+        );
+    }
 
-export default HomeScreen
+    if (error) {
+        return (
+            <SafeAreaView style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+            </SafeAreaView>
+        );
+    }
+
+    return (
+        <SafeAreaView style={styles.container}>
+            <WeatherCard />
+
+            <Text style={styles.headline}>Top Headlines</Text>
+
+            <FlatList
+                showsVerticalScrollIndicator={false}
+                data={news}
+                renderItem={renderItem}
+                keyExtractor={item => item.article_id}
+                contentContainerStyle={styles.listContent}
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={renderFooter}
+            />
+        </SafeAreaView>
+    );
+};
 
 const styles = StyleSheet.create({
-    mainContainer: {
+    container: {
         flex: 1,
-        backgroundColor: "white"
+        backgroundColor: '#F8F9FA',
+        paddingHorizontal: 16,
     },
-    title: {
-        fontSize: 25,
-        fontWeight: '500',
-        paddingHorizontal: dw / 15,
-        paddingVertical: dh / 35,
+    listContent: {
+        paddingTop: 10,
+        paddingBottom: 20,
+    },
+    headline: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#1a202c',
+        marginBottom: 10,
+    },
+    loadingContainer: {
+        flex: 1,
         justifyContent: 'center',
-        // alignSelf: "center"
+        alignItems: 'center',
     },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 12,
+    },
+    footerText: {
+        marginLeft: 10,
+        fontSize: 14,
+        color: '#666',
+    },
+});
 
-})
+export default HomeScreen;
