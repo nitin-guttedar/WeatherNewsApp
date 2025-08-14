@@ -1,0 +1,4 @@
+export const HomeIcon = require('../../assets/images/home.png')
+export const HomeFilledIcon = require('../../assets/images/homeFilled.png')
+export const settingIcon = require('../../assets/images/setting.png')
+export const settingFilledIcon = require('../../assets/images/settingFilled.png')
